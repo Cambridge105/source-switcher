@@ -14,7 +14,7 @@ int iButtonState2 = 1;
 int iButtonState3 = 1;
 int iState = -1;
 
-int iDebounceDelay = 100;
+int iDebounceDelay = 500;
 
 void setup() {
   // initialize the button pins as inputs
