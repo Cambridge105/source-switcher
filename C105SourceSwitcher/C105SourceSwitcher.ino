@@ -14,7 +14,7 @@ int iButtonState2 = 1;
 int iButtonState3 = 1;
 int iState = -1;
 
-int iDebounceDelay = 500;
+int iDebounceDelay = 2000;
 
 void setup() {
   // initialize the button pins as inputs
@@ -32,33 +32,14 @@ void setup() {
 
 
 void loop() {
-  iState = digitalRead(iButtonPin1);
-  if (iState != iButtonState1) {
-    delay(iDebounceDelay);
-    iState = digitalRead(iButtonPin1);
-    if (iState != iButtonState1) {
-      iLatestButton = 1;
-      iButtonState1 = iState;
-    }
+  if (debouncedReadWaitingForRelease(iButtonPin1)) {
+    iLatestButton = 1;
+  } else if (debouncedReadWaitingForRelease(iButtonPin2)) {
+    iLatestButton = 2;
+  } else if (debouncedReadWaitingForRelease(iButtonPin3)) {
+    iLatestButton = 3;
   }
-  iState = digitalRead(iButtonPin2);
-  if (iState != iButtonState2) {
-    delay(iDebounceDelay);
-    iState = digitalRead(iButtonPin2);
-    if (iState != iButtonState2) {
-      iLatestButton = 2;
-      iButtonState2 = iState;
-    }
-  }
-  iState = digitalRead(iButtonPin3);
-  if (iState != iButtonState3) {
-    delay(iDebounceDelay);
-    iState = digitalRead(iButtonPin3);
-    if (iState != iButtonState3) {
-      iLatestButton = 3;
-      iButtonState3 = iState;
-    }
-  }
+  
   if (iLatestButton != iPreviousButton) {
     iPreviousButton = iLatestButton;
     switch(iLatestButton) {
@@ -89,11 +70,24 @@ void loop() {
   }
 }
 
+bool debouncedReadWaitingForRelease(int pin) {
+  int initialState = digitalRead(pin);
 
-
-
-
-
-
-
-
+  // If it's low to start with, return false.
+  if (initialState == LOW) {
+    return false;
+  }
+  
+  // If it's high, make sure it stays high for the debounce period...
+  delay(iDebounceDelay);
+  if (digitalRead(pin) != HIGH) {
+    return false;
+  }
+  
+  // Wait for it to go low to actually trigger the transition
+  while (digitalRead(pin) == LOW) {
+    ;
+  }
+  
+  return true;
+}
